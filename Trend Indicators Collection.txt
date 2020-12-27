@@ -2,7 +2,7 @@
 // © David_Ara_jo
 //
 //  This script is part of a collection of 5 scripts!
-//      - Trend Indicatos (this one)
+//      - Trend Indicators (this one)
 //      - Momentum Indicators
 //      - Volume Indicators
 //      - Volatility Indicatos
@@ -85,7 +85,6 @@ alertcondition(buy_macd or macd_pos_div, title = "MACD Strategy", message = "MAC
 alertcondition(sell_macd or macd_neg_div, title = "MACD Strategy", message = "MACD SELL signal was generated on {{ticker}} at {{timenow}}")
 
 //----------------------------------------------------------------------------//
-
 // ADX - Indicator of trend strength but does not indicate trend direction. As a
 // lagging indicator, the trend must have established itself before the ADX
 // genarate a signal
@@ -134,7 +133,6 @@ alertcondition(mi_in and mi_end_bulge, title = "Mass Index Strategy", message = 
 
 //----------------------------------------------------------------------------//
 //  Ichimoku
-
 //  Tenkan-sen - used as minor suport/resistance line
 //  Kijun - Confirmation line, suport/resistance, can be used as trailling stop
 //  SenkuA, SenkuB

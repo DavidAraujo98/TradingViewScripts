@@ -10,8 +10,7 @@
 //  Finds them at : https://github.com/DavidAraujo98/TradingViewScripts
 //
 //  Trend Indicators Collection contains:
-//      - Lagging Indicators: MACD, EMA, ADX, Mass index
-//      - Leading Indicators: Donchian Channel and Ichimoku Cloud
+//      MACD, EMA, ADX, Mass index and Ichimoku Cloud
 //
 //@version=4
 study("Trend Indicators Collection", shorttitle="TIC", overlay=true, precision=2)

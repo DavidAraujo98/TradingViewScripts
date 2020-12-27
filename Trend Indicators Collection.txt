@@ -5,7 +5,7 @@
 //      - Trend Indicators (this one)
 //      - Momentum Indicators
 //      - Volume Indicators
-//      - Volatility Indicatos
+//      - Volatility Indicators
 // 
 //  Finds them at : https://github.com/DavidAraujo98/TradingViewScripts
 //

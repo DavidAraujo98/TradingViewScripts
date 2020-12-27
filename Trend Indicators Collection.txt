@@ -10,7 +10,7 @@
 //  Finds them at : https://github.com/DavidAraujo98/TradingViewScripts
 //
 //  Trend Indicators Collection contains:
-//      MACD, EMA, ADX, Mass index and Ichimoku Cloud
+//      MACD, EMA, ADX, Mass index, Ichimoku Cloud and Pivot points
 //
 //@version=4
 study("Trend Indicators Collection", shorttitle="TIC", overlay=true, precision=2)

@@ -2,7 +2,7 @@
 // © David_Ara_jo
 //
 //  This script is part of a collection of 5 scripts!
-//      - Trend Indicators (this one)
+//      - Cloud MACD (this one)
 //      - Momentum Indicators
 //      - Volume Indicators
 //      - Volatility Indicators
@@ -10,10 +10,11 @@
 //  Finds them at : https://github.com/DavidAraujo98/TradingViewScripts
 //
 //  Trend Indicators Collection contains:
-//      MACD, EMA, ADX, Mass index, Ichimoku Cloud and Pivot points
+//      - MACD, EMA, ADX, Mass index, Ichimoku Cloud and Pivot points
+//      - Best suited for montly charts with 30m bars
 //
 //@version=4
-study("Trend Indicators Collection", shorttitle="TIC", overlay=true, precision=2)
+study("Cloud MACD", shorttitle="CMACD", overlay=true, precision=2)
 
 //  Combined Strong alerts
 strong_alert = input(title="Strong Alerts ⏰ " , defval=true)
@@ -169,19 +170,20 @@ alertcondition(mi_in and mi_end_bulge, title = "Mass Index Strategy", message = 
 //      - MACD crossover while Ichimoku Cloud Positive while
 //      - Ichimoku Kumo crossover while MACD Positive
 //      - Both 
-
+tk_cross_bull = tenkan > kijun
 b_op1 = buy_macd and senkuA > senkuB
 b_op2 = crossover(senkuA,senkuB) and macd > signal_ema
-combined_buy = (b_op1 or b_op2) and macd > ema and (close > kumo_top)
-plotshape(combined_buy and strong_alert, color=color.green, textcolor=color.white, style=shape.labelup, size=size.small, location=location.belowbar, text="Strong Buy", title="Combined") 
+combined_buy = (b_op1 or b_op2) and macd > ema and (close > kumo_top) and tk_cross_bull
+plotshape(combined_buy and strong_alert, color=color.green, textcolor=color.white, style=shape.labelup, size=size.small, location=location.belowbar, text="Buy", title="Combined") 
 
 //  SELL Rules:
 //      - Ichimoku negative while price under EMA or the inverse
-
+tk_cross_bear = tenkan < kijun
 s_op1 = crossunder(senkuA, senkuB) and close < ema
 s_op2 = crossunder(close,ema) and (senkuA < senkuB)
-combined_sell = s_op1 or s_op2
-plotshape(combined_sell and strong_alert, color=color.red, textcolor=color.white, style=shape.labeldown, size=size.small, location=location.abovebar, text="Strong Sell", title="Combined")
+s_op3 = sell_macd and (senkuB > senkuA)
+combined_sell = (s_op1 or s_op2 or s_op3) and tk_cross_bear
+plotshape(combined_sell and strong_alert, color=color.red, textcolor=color.white, style=shape.labeldown, size=size.small, location=location.abovebar, text="Sell", title="Combined")
 
 alertcondition(combined_buy, title = "Combined Alert !", message = "Combined BUY alert at - {{ticker}} at {{timenow}}")
 alertcondition(combined_sell, title = "Combined Alert !", message = "Combined SELL alert at - {{ticker}} at {{timenow}}")

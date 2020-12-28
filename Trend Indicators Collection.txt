@@ -15,21 +15,24 @@
 //@version=4
 study("Trend Indicators Collection", shorttitle="TIC", overlay=true, precision=2)
 
-// EMA in user defined days
+//  Combined Strong alerts
+strong_alert = input(title="Strong Alerts ⏰ " , defval=true)
+
+//  EMA in user defined days
 ema_in = input(title="EMA 📈", type=input.bool, defval=false)
 ema_day = input(title="EMA days", defval=26, options=[12, 26, 50, 200])
 ema = ema(close, ema_day)
 
-plot(ema_in ? ema: na, title="EMA", color=color.black, linewidth=1)
+plot(ema_in ? ema: na, title="EMA", color=color.black, linewidth=3)
 
 //----------------------------------------------------------------------------//
-// Pivot points - Traces support and resistence line
+//  Pivot points - Traces support and resistence line
 
 pp_in = input(title="Pivot points 📈", type=input.bool, defval=false)
 
-xHigh  = security(syminfo.tickerid, 'D', high)
-xLow   = security(syminfo.tickerid, 'D', low)
-xClose = security(syminfo.tickerid, 'D', close)
+xHigh  = security(syminfo.tickerid, 'W', high)
+xLow   = security(syminfo.tickerid, 'W', low)
+xClose = security(syminfo.tickerid, 'W', close)
 vPP = (xHigh + xLow + xClose) / 3
 vR1 = vPP + (vPP - xLow)
 vS1 = vPP - (xHigh - vPP)
@@ -45,9 +48,9 @@ plot(pp_in ? vR2 : na, color=#006F00, title="R2", linewidth = 2)
 plot(pp_in ? vR3 : na, color=#004900, title="R3", linewidth = 2)
 
 //----------------------------------------------------------------------------//
-// MACD - Used to spot changes in strength, direction, momentum and duration of
-// a trend in a stock's price. It is a computation of the difference between two
-// EMAs of closing prices.
+//  Modified MACD - Used to spot changes in strength, direction, momentum and duration of
+//  a trend in a stock's price. It is a computation of the difference between two
+//  EMAs of closing prices.
 
 macd_in = input(title="MACD 📈", type=input.bool, defval=false)
 
@@ -56,7 +59,7 @@ macd_fast = input(title="MACD Fast length", defval=12)
 signal_length = input(title="Signal length", minval=1, maxval=50, defval=9)
 macd_div = input(title="Divergence time window (bars)", minval=1, defval=7)
 
-//Calculations
+//  Calculations
 slow_ema = ema(close, macd_slow)
 fast_ema = ema(close, macd_fast)
 macd = fast_ema - slow_ema + close
@@ -68,11 +71,11 @@ p2 = plot(macd_in ? signal_ema : na, title="Signal (MACD)", color=color.orange, 
 fill_color = macd > signal_ema ? color.green : color.red
 fill(p1, p2, color=fill_color)
 
-// Crossovers
-buy_macd = crossover (macd, signal_ema) and close < ema
-sell_macd = crossunder (macd, signal_ema) and close >= ema
+//  Crossovers
+buy_macd = crossover (macd, signal_ema)
+sell_macd = crossunder (macd, signal_ema)
 
-// MACD and price divergencies
+//  MACD and price divergencies
 macd_pos_div = close == lowest(close, macd_div) and not lowest(macd,macd_div)
 macd_neg_div = close == highest(close, macd_div) and not highest(macd,macd_div)
 
@@ -80,16 +83,13 @@ macd_neg_div = close == highest(close, macd_div) and not highest(macd,macd_div)
 plotshape(macd_in and buy_macd or macd_pos_div, color=color.green, style=shape.triangleup, size=size.small, location=location.belowbar, text="BUY", title="MACD")
 plotshape(macd_in and sell_macd or macd_neg_div, color=color.red, style=shape.triangledown, size=size.small, location=location.abovebar, text="SELL", title="MACD")
 
-alertcondition(buy_macd or macd_pos_div, title = "MACD Strategy", message = "MACD BUY signal was generated on {{ticker}} at {{timenow}}")
-alertcondition(sell_macd or macd_neg_div, title = "MACD Strategy", message = "MACD SELL signal was generated on {{ticker}} at {{timenow}}")
-
 //----------------------------------------------------------------------------//
-// ADX - Indicator of trend strength but does not indicate trend direction. As a
-// lagging indicator, the trend must have established itself before the ADX
-// genarate a signal
-// ADX will range between 0 and 100, generally:
-// ADX < 20 - trend weakness (gray color)
-// ADX > 40 - tren strength (> 50 extremely strong) (blue and darkblue)
+//  ADX - Indicator of trend strength but does not indicate trend direction. As a
+//  lagging indicator, the trend must have established itself before the ADX
+//  genarate a signal
+//  ADX will range between 0 and 100, generally:
+//  ADX < 20 - trend weakness (gray color)
+//  ADX > 40 - tren strength (> 50 extremely strong) (blue and darkblue)
 
 adx_in = input(title="ADX 📈", type=input.bool, defval=false)
 adxlen = input(14, title="ADX Smoothing")
@@ -114,21 +114,20 @@ background = sig <= 20 and adx_in ? color.gray  : ( sig > 40 and sig < 50 and ad
 bgcolor(background, transp = 90)
 
 //----------------------------------------------------------------------------//
-// Mass index - Used to predict trend reversals, It is based on the notion that 
-// there is a tendency for reversal when the price range widens. 
-// Serves also as a volatility indicator
+//  Mass index - Used to predict trend reversals, It is based on the notion that 
+//  there is a tendency for reversal when the price range widens. 
+//  Serves also as a volatility indicator
 
 mi_in = input(title="Mass index 📈", type=input.bool, defval=false)
-length = input(title="MI length (days)" , defval=25, minval=1)
+length = 25
 range = high - low
 mi = sum(ema(range, 9) / ema(ema(range, 9), 9), length)
 
 mi_start_bulge = crossover(mi, 27)
 mi_end_bulge = crossunder(mi, 26)
 
-plotshape(mi_in and mi_start_bulge, color=color.red, style=shape.triangleup, size=size.small, location=location.belowbar, text="MI Buldge S", title="MI")
-plotshape(mi_in and mi_end_bulge, color=color.green, style=shape.triangleup, size=size.small, location=location.belowbar, text="MI Buldge E", title="MI")
-alertcondition(mi_in and mi_end_bulge, title = "Mass Index Strategy", message = "Mass index bulge ended, may point to trend reversal - {{ticker}} at {{timenow}}")
+plotshape(mi_in and mi_end_bulge, color=color.green, style=shape.triangleup, size=size.small, location=location.belowbar, text="MI Buldge End", title="MI")
+plotshape(mi_in and mi_start_bulge, color=color.red, style=shape.triangleup, size=size.small, location=location.belowbar, text="MI Buldge Start", title="MI")
 
 //----------------------------------------------------------------------------//
 //  Ichimoku
@@ -138,6 +137,7 @@ alertcondition(mi_in and mi_end_bulge, title = "Mass Index Strategy", message = 
 //  Kumo - Identify current and potential future support/resistance points
 
 ichi_in = input(title="Ichimoku Cloud 📈", type=input.bool, defval=false)
+ichic_in = input(title="Ichimoku Cloud (Only Cloud)", type=input.bool, defval=false)
 lagging = input(title="Lagging Span", defval=26, minval=1)
 tenkan_lag = input(title="Tenkan", defval=9, minval=1)
 kijun_lag = input(title="Kijun", defval=26, minval=1)
@@ -148,11 +148,40 @@ kijun = avg(lowest(kijun_lag), highest(kijun_lag))
 senkuA = avg(kijun,tenkan)
 senkuB = avg(lowest(senkuB_lag), highest(senkuB_lag))
 
-plot(ichi_in ? tenkan : na , title="Tenkan-sen", color=#0496ff)
-plot(ichi_in ? kijun : na, title="Kijun", color=#991515)
-plot(ichi_in ? close : na, offset=-lagging + 1, color=#459915, title="Chikou span")
+plot(ichi_in and not ichic_in ? tenkan : na , title="Tenkan-sen", color=#0496ff)
+plot(ichi_in and not ichic_in? kijun : na, title="Kijun", color=#991515)
+plot(ichi_in and not ichic_in? close : na, offset=-lagging + 1, color=#459915, title="Chikou span")
 skA = plot(ichi_in ? senkuA : na, offset = lagging - 1, color=color.green,
-	 title="Lead 1")
+	 title="Senku A")
 skB = plot(ichi_in ? senkuB : na, offset = lagging - 1, color=color.red,
-	 title="Lead 2")
+	 title="Senku B")
+kumo_top = senkuA >= senkuB ? senkuA : senkuB
 fill(skA, skB, color = senkuA > senkuB ? color.green : color.red)
+
+//----------------------------------------------------------------------------//
+//  Alerts - Takes into consideration every indicator above
+
+//  MI alert
+alertcondition(mi_in and mi_end_bulge, title = "Mass Index Strategy", message = "Mass index bulge ended, may point to trend reversal - {{ticker}} at {{timenow}}")
+
+//  Combined Alert
+//  BUY Rules:
+//      - MACD crossover while Ichimoku Cloud Positive while
+//      - Ichimoku Kumo crossover while MACD Positive
+//      - Both 
+
+b_op1 = buy_macd and senkuA > senkuB
+b_op2 = crossover(senkuA,senkuB) and macd > signal_ema
+combined_buy = (b_op1 or b_op2) and macd > ema and (close > kumo_top)
+plotshape(combined_buy and strong_alert, color=color.green, textcolor=color.white, style=shape.labelup, size=size.small, location=location.belowbar, text="Strong Buy", title="Combined") 
+
+//  SELL Rules:
+//      - Ichimoku negative while price under EMA or the inverse
+
+s_op1 = crossunder(senkuA, senkuB) and close < ema
+s_op2 = crossunder(close,ema) and (senkuA < senkuB)
+combined_sell = s_op1 or s_op2
+plotshape(combined_sell and strong_alert, color=color.red, textcolor=color.white, style=shape.labeldown, size=size.small, location=location.abovebar, text="Strong Sell", title="Combined")
+
+alertcondition(combined_buy, title = "Combined Alert !", message = "Combined BUY alert at - {{ticker}} at {{timenow}}")
+alertcondition(combined_sell, title = "Combined Alert !", message = "Combined SELL alert at - {{ticker}} at {{timenow}}")

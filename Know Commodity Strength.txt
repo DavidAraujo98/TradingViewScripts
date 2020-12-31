@@ -89,10 +89,12 @@ kst_slope = sma((KST - signal), len)
 
 rsi_sig = avg(rsi, len) <= 45 or rsi < 40
 mi_sig = mi > 22 and mi < 26
-kst_sig = KST > signal or rising(kst_slope, len) or crossover(KST, signal)
+kst_sig = (KST > signal and not falling(kst_slope, len)) or crossover(KST, signal)
 vi_bsig = avg(VIP, len) > 1 and not falling(ema(VIP,len),len)
 cci_bsig = (avg(cci, len) <= 0 or crossover(cci, -100)) and not falling(ema(cci,len),len)
 
 combo_b = rsi_sig and mi_sig and vi_bsig and kst_sig and cci_bsig
 
-plotshape(combo_b and strong_alert_b, color=color.green, style=shape.triangleup, size=size.small, location=location.belowbar, text="Momentum")
+background = combo_b ? color.blue : na
+
+bgcolor(background, transp = 90)

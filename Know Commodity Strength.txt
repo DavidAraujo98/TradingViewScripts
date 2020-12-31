@@ -1,0 +1,98 @@
+// This source code is subject to the terms of the Mozilla Public License 2.0 at https://mozilla.org/MPL/2.0/
+// © David_Ara_jo
+
+//  This script is part of a collection of 5 scripts!
+//      - Cloud MACD 
+//      - Know Commodity Strength (this one)
+//      - Volume Indicators
+//      - Volatility Indicators
+// 
+//  Finds them at : https://github.com/DavidAraujo98/TradingViewScripts
+
+//@version=4
+study(title="Know Commodity Strength", shorttitle="KCS", precision=2, overlay=true)
+
+strong_alert_s = input(title="Strong Alerts - Sell ⏰ " , defval=true)
+strong_alert_b = input(title="Strong Alerts - Buy ⏰ " , defval=true)
+
+
+//----------------------------------------------------------------------------//
+//  Relative Strength Index (RSI) - Above 70 is considered overbought, while below
+//  30 is considered oversold. Can be used to identify short-term trends
+
+len = input(14, minval=1, title="Length")
+src = input(close, "Source", type = input.source)
+up = rma(max(change(src), 0), len)
+down = rma(-min(change(src), 0), len)
+rsi = down == 0 ? 100 : up == 0 ? 0 : 100 - (100 / (1 + up / down))
+
+//----------------------------------------------------------------------------//
+//  Vortex Indicator (VI) - Usefull to spot trend reversals
+
+period = input(14, title="Vortex Period", minval=2)
+VMP = sum( abs( high - low[1]), period )
+VMM = sum( abs( low - high[1]), period )
+STR = sum( atr(1), period )
+VIP = VMP / STR
+VIM = VMM / STR
+
+
+//----------------------------------------------------------------------------//
+//  Mass index (MI) - Used to predict trend reversals, It is based on the notion that 
+//  there is a tendency for reversal when the price range widens. 
+//  Serves also as a volatility indicator
+
+range = high - low
+mi = sum(ema(range, 9) / ema(ema(range, 9), 9), 25)
+
+//----------------------------------------------------------------------------//
+//  Commodity Channel Index (CCI) - Usually used to spot long-term trend changes,
+//  usefull to establish the dominant trend and isolate pullbacks
+
+cci_length = input(title="CCI Perido", defval=20, minval=1)
+cci_src = input(close, title="Source")
+ma = sma(cci_src, cci_length)
+cci = (cci_src - ma) / (0.015 * dev(cci_src, cci_length))
+
+//----------------------------------------------------------------------------//
+//  Know Sure Thing (KST)
+
+ROC1 = input(10)
+ROC2 = input(15)
+ROC3 = input(20)
+ROC4 = input(30)
+SMA1 = input(9)
+
+ROCma1 = sma(roc(close, ROC1), 10)
+ROCma2 = sma(roc(close, ROC2), 10)
+ROCma3 = sma(roc(close, ROC3), 10)
+ROCma4 = sma(roc(close, ROC4), 15)
+
+KST = ROCma1 + ROCma2 * 2 + ROCma3 * 3 + ROCma4 * 4
+signal = sma(KST, SMA1)
+kst_slope = sma((KST - signal), len)
+
+
+//----------------------------------------------------------------------------//
+//  Combination Rules:
+//      - "Know Commodity Strength" (KCS): KST, CCI and RSI combo. 
+//  Oscillator shows when momentum may be rounding up.
+//  Reletive Strength Index rules: Average RSI is below 25 or RSI is under 20
+//  Know Sure Thing rules: KST must be positive or be in a rising trend, or crossed over its signal
+//  Commodity Channel Index rules: Its average is bellow or equal to 0 or just crossed over -100. Each of the must have happen while the CCI is not in a falling trend
+//  Vortex index rules: VI+ has a positive average and not in a falling trend
+//  Mass index rules: must be between 22 and 26 in a 25 period
+
+//  After analysis of various graphs, it seems that before a trend spike up, the
+//  avarage RSI stays below 50, following the rule that when it crosses the 
+//  underbought line, generally points to a go buy price
+
+rsi_sig = avg(rsi, len) <= 45 or rsi < 40
+mi_sig = mi > 22 and mi < 26
+kst_sig = KST > signal or rising(kst_slope, len) or crossover(KST, signal)
+vi_bsig = avg(VIP, len) > 1 and not falling(ema(VIP,len),len)
+cci_bsig = (avg(cci, len) <= 0 or crossover(cci, -100)) and not falling(ema(cci,len),len)
+
+combo_b = rsi_sig and mi_sig and vi_bsig and kst_sig and cci_bsig
+
+plotshape(combo_b and strong_alert_b, color=color.green, style=shape.triangleup, size=size.small, location=location.belowbar, text="Momentum")
